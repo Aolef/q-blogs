@@ -1,0 +1,15 @@
+---
+import "../styles/blogCard.scss"
+// const platform = "github";
+// const username = "withastro";
+const { post } = Astro.props;
+---
+<div class="blogCardBox">
+  <div class="blogCardBoxHeader">
+    <h3><a href={post.url} target="_blank">{post.frontmatter.title}</a></h3>
+  </div>
+  <div class="blogCardBoxContent">{post.frontmatter.description}</div>
+  <div class="blogCardBoxFooter">
+    <span>发表时间：{post.frontmatter.pubDate.split('T')[0]}</span>
+  </div>
+</div>

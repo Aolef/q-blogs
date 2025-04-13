@@ -1,0 +1,26 @@
+.blogCardBox {
+  display: flex;
+  flex-direction: column;
+  width: 60%;
+  height: 240px;
+  margin: 0 auto;
+  margin-top: 20px;
+  background-color: #fff;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.1);
+  padding: 6px 20px;
+
+  .blogCardBoxHeader {
+    
+  }
+  .blogCardBoxContent {
+    flex: 1;
+  }
+  .blogCardBoxFooter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 40px;
+    color: #666;
+    font-size: 14px;
+  }
+}
