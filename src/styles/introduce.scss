@@ -25,4 +25,13 @@
         line-height: 1.5;
         padding-top: 20px;
     }
+    &-footer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px 0;
+        font-size: 14px;
+        text-align: center;
+    }
 }
