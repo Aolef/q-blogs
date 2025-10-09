@@ -1,9 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Navigation from "../components/Navigation.astro";
-const pageTitle = "博客";
+import Index from "../components/Containers/Index.astro"
+
 ---
-<BaseLayout pageTitle={pageTitle}>
+<BaseLayout>
 	<!-- <Navigation/> -->
 	<!-- <h2>My awesome blog subtitle</h2> -->
+	<Index />
 </BaseLayout>

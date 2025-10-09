@@ -1,42 +1,360 @@
 ---
+import Header from '../components/Header.astro';
+// import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+import Footer from "../components/Footer.astro";
+
 const { frontmatter } = Astro.props;
+const pageTitle = frontmatter.title || "图图的博客";
+
+// 处理来源信息
+function getSourceInfo(source) {
+    if (!source) return { type: '原创', link: null, text: null };
+    
+    if (source.includes(',')) {
+        const [type, link] = source.split(',');
+        return { type: type.trim(), link: link.trim(), text: link.trim() };
+    }
+    return { type: '翻译', link: source, text: source };
+}
+
+const sourceInfo = getSourceInfo(frontmatter.source);
+
+// 截断链接显示文本
+function truncateUrl(url, maxLength = 50) {
+    if (!url || url.length <= maxLength) return url;
+    return url.substring(0, maxLength) + '...';
+}
 ---
-<meta charset="utf-8" />
-<div class="blogPage">
-    <div class="blogPageHeader">
-        <h1>{frontmatter.title}</h1>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <!-- <meta name="generator" content={Astro.generator} /> -->
+    <title>{pageTitle}</title>
+    <style>
+        .layout {
+            height: 100%;
+            overflow: auto;
+        }
+        .layout-content {
+            background: linear-gradient(135deg, #2d3748, #4a5568);
+            color: #edf2f7;
+        }
+        /* 动态背景粒子效果 */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        /* 优化的文章内容样式 */
+        .article-content {
+            font-size: 16px;
+            line-height: 1.5; /* 1.5倍行距 */
+        }
+        
+        .article-content h1, .article-content h2, .article-content h3, 
+        .article-content h4, .article-content h5, .article-content h6 {
+            color: #90cdf4;
+            margin-top: 2rem;
+            margin-bottom: 1.2rem;
+            line-height: 1.3;
+            font-weight: 600;
+        }
+        
+        .article-content h1 {
+            font-size: 2rem;
+            margin-top: 0;
+        }
+        
+        .article-content h2 {
+            font-size: 1.75rem;
+            border-bottom: 2px solid rgba(144, 205, 244, 0.3);
+            padding-bottom: 0.5rem;
+        }
+        
+        .article-content h3 {
+            font-size: 1.5rem;
+        }
+        
+        .article-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+            text-align: justify;
+            word-spacing: 0.1em;
+        }
+        
+        .article-content ul, .article-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 2rem;
+            line-height: 1.6;
+        }
+        
+        .article-content li {
+            margin-bottom: 0.8rem;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        
+        .article-content li strong {
+            color: #90cdf4;
+            font-weight: 600;
+        }
+        
+        .article-content code {
+            background-color: rgba(45, 55, 72, 0.8);
+            padding: 0.3rem 0.5rem;
+            border-radius: 0.375rem;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #fbbf24;
+            border: 1px solid rgba(75, 85, 99, 0.5);
+        }
+        
+        .article-content pre {
+            background-color: rgba(30, 41, 59, 0.95);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            border: none;
+            color: #e2e8f0;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        .article-content blockquote {
+            border-left: 4px solid #3b82f6;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: #cbd5e0;
+            background-color: rgba(59, 130, 246, 0.1);
+            border-radius: 0 0.5rem 0.5rem 0;
+            line-height: 1.6;
+        }
+        
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin: 1.5rem auto;
+            display: block;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+        }
+        
+        .article-content a {
+            color: #60a5fa;
+            text-decoration: underline;
+            text-decoration-color: rgba(96, 165, 250, 0.5);
+            transition: all 0.2s ease;
+        }
+        
+        .article-content a:hover {
+            color: #93c5fd;
+            text-decoration-color: #93c5fd;
+        }
+        
+        .article-content strong {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+        
+        .article-content em {
+            color: #cbd5e0;
+            font-style: italic;
+        }
+        
+        /* 段落间距优化 */
+        .article-content > *:first-child {
+            margin-top: 0;
+        }
+        
+        .article-content > *:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* 表格样式 */
+        .article-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background-color: rgba(45, 55, 72, 0.5);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .article-content th,
+        .article-content td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.5);
+            line-height: 1.5;
+        }
+        
+        .article-content th {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #90cdf4;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <div class="layout-header">
+            <Header pageType={"article"}></Header>
+        </div>
+        <div class="layout-content min-h-full">
+            <!-- 粒子背景 -->
+            <canvas id="particles"></canvas>
+             <!-- 主内容区域 -->
+            <div class="container mx-auto p-6">
+                <!-- 文章详情 -->
+                <section id="article-detail" class="mb-16">
+                <div class="article-content bg-gray-700 bg-opacity-80 p-8 rounded-lg shadow-lg">
+                    <h1 class="text-4xl font-bold text-blue-300 mb-4">{frontmatter.title}</h1>
+                    
+                    <!-- 文章元信息 -->
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 text-gray-300 border-b border-gray-600 pb-4">
+                        <div class="flex flex-col md:flex-row md:space-x-6 space-y-2 md:space-y-0">
+                            {frontmatter.tags && (
+                                <p><span class="font-semibold">标签:</span> 
+                                    <span class="text-blue-200">
+                                        {frontmatter.tags.join(', ')}
+                                    </span>
+                                </p>
+                            )}
+                            
+                            <p><span class="font-semibold">来源:</span> 
+                                {sourceInfo.link ? (
+                                    <span>
+                                        {sourceInfo.type} [<a 
+                                            href={sourceInfo.link} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            class="text-blue-400 hover:text-blue-300 underline"
+                                            title={sourceInfo.link}
+                                        >
+                                            {truncateUrl(sourceInfo.text)}
+                                        </a>]
+                                    </span>
+                                ) : (
+                                    <span class="text-green-300">原创</span>
+                                )}
+                            </p>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row md:space-x-6 space-y-2 md:space-y-0 mt-2 md:mt-0">
+                            {frontmatter.author && (
+                                <p><span class="font-semibold">作者:</span> 
+                                    <span class="text-yellow-200">{frontmatter.author}</span>
+                                </p>
+                            )}
+                            
+                            {frontmatter.pubDate && (
+                                <p><span class="font-semibold">发布日期:</span> 
+                                    <span class="text-gray-200">
+                                        {new Date(frontmatter.pubDate).toLocaleDateString('zh-CN')}
+                                    </span>
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    
+                    <!-- 文章描述 -->
+                    <!-- {frontmatter.description && (
+                        <div class="mb-6 p-4 bg-blue-900 bg-opacity-30 rounded-lg border-l-4 border-blue-400">
+                            <p class="text-blue-100 italic">{frontmatter.description}</p>
+                        </div>
+                    )} -->
+                    
+                    <!-- 文章内容 -->
+                    <div class="text-gray-200 leading-relaxed prose prose-invert max-w-none">
+                        <slot />
+                    </div>
+                </div>
+                </section>
+            </div>
+
+        </div>
+        <div class="layout-footer">
+            <Footer></Footer>
+        </div>
     </div>
-    <div class="blogPageInfo">
-        <div>
-            <span>作者：</span>
-            <span>{frontmatter.author}</span>
-        </div>
-        <div>
-            <span>发表日期：</span>
-            <span>{frontmatter.pubDate.toString().slice(0,10)}</span>
-        </div>
-        <div>
-            <span>标签：</span>
-            {frontmatter.tags.map((tag:any) => <span class="tagItem">{tag}</span>)}
-        </div>
-    </div>
-    <slot />
-</div>
-<style>
-    .blogPage {
-        margin: 0 auto;
-        max-width: 1000px;
+<script>
+    // import "../scripts/menu.js";
+
+    // 粒子背景效果
+    const canvas = document.getElementById("particles") as HTMLCanvasElement;
+    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const particlesArray: Particle[] = [];
+    class Particle {
+        x: number;
+        y: number;
+        size: number;
+        speedX: number;
+        speedY: number;
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 3 + 1;
+            this.speedX = Math.random() * 2 - 1;
+            this.speedY = Math.random() * 2 - 1;
+        }
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.size > 0.2) this.size -= 0.05;
+        }
+        draw() {
+            ctx.fillStyle = "rgba(59, 130, 246, 0.5)";
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
-    .blogPageInfo {
-        font-size: 14px;
+    function initParticles() {
+        for (let i = 0; i < 100; i++) {
+            particlesArray.push(new Particle());
+        }
     }
-    .tagItem {
-        background-color: #f5f5f5;
-        padding: 1px 5px;
-        line-height: 1.2;
-        margin-right: 5px;
-        color: #666;
-        border-radius: 3px;
-        font-size: 12px;
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < particlesArray.length; i++) {
+            particlesArray[i].update();
+            particlesArray[i].draw();
+            if (particlesArray[i].size <= 0.2) {
+                particlesArray.splice(i, 1);
+                i--;
+                particlesArray.push(new Particle());
+            }
+        }
+        requestAnimationFrame(animateParticles);
     }
-</style>
+    initParticles();
+    animateParticles();
+    window.addEventListener("resize", () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+</script>
+</body>
+</html>

@@ -2,10 +2,31 @@
 import '../styles/header.scss'
 // const platform = "github";
 // const username = "withastro";
+const {pageType} = Astro.props;
 ---
 
-<div class="header">
-    <div class="button-groups">
-        <div class="button">博客</div>
-    </div>
+<div class="blob-header">
+    <nav class="bg-gray-900 bg-opacity-80 backdrop-blur-md p-4 sticky top-0 z-10 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-blue-400">图图的博客</h1>
+            {pageType === 'article' ? (
+                <!-- 文章页面只显示返回首页按钮 -->
+                <div class="flex items-center">
+                    <a href="/" class="nav-link text-blue-200 hover:text-blue-400 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        返回首页
+                    </a>
+                </div>
+            ) : (
+                <!-- 普通页面显示完整导航菜单 -->
+                <ul class="flex space-x-8 text-lg">
+                    <li><a href="/" class="nav-link text-blue-200 hover:text-blue-400">首页</a></li>
+                    <li><a href="/tech" class="nav-link text-blue-200 hover:text-blue-400">技术文章</a></li>
+                    <li><a href="/blog" class="nav-link text-blue-200 hover:text-blue-400">读书随笔</a></li>
+                </ul>
+            )}
+        </div>
+    </nav>
 </div>

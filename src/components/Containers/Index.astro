@@ -1,0 +1,61 @@
+
+
+---
+import BlogCard from "../BlogCard.astro";
+
+ let allTechPosts = Object.values(import.meta.glob('../../pages/posts/tech-posts/*.md', { eager: true }));
+ allTechPosts.sort((a:any, b:any) => new Date(b.frontmatter.pubDate).getTime() - new Date(a.frontmatter.pubDate).getTime());
+ allTechPosts = allTechPosts.slice(0, 9);
+
+ let allDailyPosts = Object.values(import.meta.glob('../../pages/posts/daily-posts/*.md', { eager: true }));
+ allDailyPosts.sort((a:any, b:any) => new Date(b.frontmatter.pubDate).getTime() - new Date(a.frontmatter.pubDate).getTime());
+ allDailyPosts = allDailyPosts.slice(0, 9);
+
+
+---
+<!-- 主内容区域 -->
+<div class="container mx-auto p-6">
+    <!-- 技术文章部分 -->
+    <section id="tech" class="mb-16">
+        <div class="flex flex-row items-end">
+            <h2 class="text-4xl font-bold text-blue-300">最新技术文章</h2>
+        </div>
+
+
+        <!-- 文章列表 -->
+        <div id="tech-articles" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- 文章卡片将通过 JavaScript 动态生成 -->
+            {
+                allTechPosts.map(post => (
+                    <a href={post.url} target="_blank" class="block hover:transform hover:scale-105 transition-transform">
+                        <BlogCard post={post} />
+                    </a>
+                ))
+            }
+        </div>
+    </section>
+    <!-- 生活小计部分 -->
+    <section id="daily" class="mb-16">
+        <div class="flex flex-row items-end">
+            <h2 class="text-4xl font-bold text-blue-300">最新读书随笔</h2>
+            <!--<h5 class="text-1xl font-bold text-blue-300 align-bottom ml-1">(查看更多)</h5>-->
+        </div>
+
+
+        <!-- 文章列表 -->
+        <div id="daily-articles" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- 文章卡片将通过 JavaScript 动态生成 -->
+            {
+                 allDailyPosts.map(post => (
+                    <div class="article-wrapper">
+                        <a href={post.url} target="_blank" class="block group">
+                            <div class="transform transition-transform duration-200 group-hover:scale-105 group-hover:-translate-y-1">
+                                <BlogCard post={post} />
+                            </div>
+                        </a>
+                    </div>
+                ))
+            }
+        </div>
+    </section>
+</div>

@@ -1,0 +1,246 @@
+
+
+---
+import BlogCard from '../BlogCard.astro';
+
+// 获取所有技术文章
+const techPosts = await Astro.glob('../../pages/posts/tech-posts/*.md');
+
+// 提取所有标签并去重
+const allTags = [...new Set(
+  techPosts
+    .flatMap(post => post.frontmatter.tags || [])
+    .filter(tag => tag) // 过滤掉空值
+)].sort();
+
+// 为客户端脚本准备数据
+const postsData = techPosts.map(post => ({
+  url: post.url,
+  frontmatter: post.frontmatter
+}));
+---
+
+<!-- 主内容区域 -->
+<div class="container mx-auto p-6">
+    <!-- 技术文章部分 -->
+    <section id="tech" class="mb-16">
+        <div class="flex flex-row">
+            <h2 class="text-4xl font-bold text-blue-300 mb-6">技术文章</h2>
+        </div>
+
+        <!-- 标签过滤 -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-2xl font-medium text-gray-100">按标签过滤</h3>
+                <div class="flex gap-2">
+                    <button 
+                        id="clear-filters" 
+                        class="px-3 py-1 bg-gray-600 text-white rounded-full hover:bg-gray-700 transition-all text-sm"
+                    >
+                        清除选择
+                    </button>
+                    <button 
+                        id="show-all" 
+                        class="px-3 py-1 bg-green-600 text-white rounded-full hover:bg-green-700 transition-all text-sm active"
+                    >
+                        显示全部
+                    </button>
+                </div>
+            </div>
+            <div id="tags" class="flex flex-wrap gap-3">
+                {allTags.map(tag => (
+                    <button 
+                        class="tag-filter px-3 py-1 bg-blue-600 bg-opacity-50 text-white rounded-full hover:bg-blue-700 transition-all" 
+                        data-tag={tag}
+                    >
+                        {tag}
+                    </button>
+                ))}
+            </div>
+            <div id="selected-tags-info" class="mt-3 text-sm text-gray-400">
+                <!-- 显示当前选中的标签信息 -->
+            </div>
+        </div>
+
+        <!-- 文章列表 -->
+        <div id="tech-articles" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {techPosts.map(post => (
+                <a href={post.url} target="_blank" class="block hover:transform hover:scale-105 transition-transform">
+                    <BlogCard post={post} />
+                </a>
+            ))}
+        </div>
+    </section>
+</div>
+
+<script define:vars={{ postsData, allTags }}>
+    // 存储所有文章数据和选中的标签
+    window.techPostsData = postsData;
+    let selectedTags = new Set();
+    
+    // 更新选中标签信息显示
+    function updateSelectedTagsInfo() {
+        const infoElement = document.getElementById('selected-tags-info');
+        if (selectedTags.size === 0) {
+            infoElement.textContent = '当前显示所有文章';
+        } else {
+            infoElement.textContent = `已选择标签: ${Array.from(selectedTags).join(', ')} (共 ${selectedTags.size} 个)`;
+        }
+    }
+    
+    // 过滤文章
+    function filterArticles() {
+        const articlesContainer = document.getElementById('tech-articles');
+        
+        // 过滤文章
+        let filteredPosts = window.techPostsData;
+        if (selectedTags.size > 0) {
+            filteredPosts = window.techPostsData.filter(post => {
+                if (!post.frontmatter.tags) return false;
+                // 文章必须包含所有选中的标签（AND 逻辑）
+                // 如果要改为 OR 逻辑，可以使用: return post.frontmatter.tags.some(tag => selectedTags.has(tag));
+                return Array.from(selectedTags).every(selectedTag => 
+                    post.frontmatter.tags.includes(selectedTag)
+                );
+            });
+        }
+        
+        // 重新渲染文章列表
+        articlesContainer.innerHTML = filteredPosts.map(post => `
+            <a href="${post.url}" class="block hover:transform hover:scale-105 transition-transform">
+                <div class="blogCardBox article-card bg-gray-800 bg-opacity-80 p-6 rounded-lg shadow-lg mt-[40px]">
+                    <h3 class="text-xl font-semibold text-blue-300 mb-2">${post.frontmatter.title}</h3>
+                    <p class="text-gray-300 mb-4">${post.frontmatter.description || ''}</p>
+                    <div class="text-sm text-gray-400 mb-2">发布日期: ${post.frontmatter.pubDate ? post.frontmatter.pubDate.split('T')[0] : ''}</div>
+                    <div class="text-sm text-gray-400 mb-2">
+                        来源: ${post.frontmatter.source ? 
+                            `${post.frontmatter.source.split(",")[0]} [<a 
+                                href="${post.frontmatter.source.split(",")[1]}"
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                class="text-blue-400 hover:text-blue-300 underline"
+                                title="${post.frontmatter.source.split(",")[1]}"
+                                onclick="event.stopPropagation()"
+                            >
+                                ${post.frontmatter.source.split(",")[1].length > 20 ? 
+                                    post.frontmatter.source.split(",")[1].substring(0, 20) + '...' : 
+                                    post.frontmatter.source.split(",")[1]
+                                }
+                            </a>]` 
+                            : '原创'
+                        }
+                    </div>
+                    <div class="text-sm text-gray-400">标签: ${post.frontmatter.tags ? post.frontmatter.tags.join(', ') : ''}</div>
+                </div>
+            </a>
+        `).join('');
+        
+        // 如果没有匹配的文章，显示提示
+        if (filteredPosts.length === 0) {
+            articlesContainer.innerHTML = `
+                <div class="col-span-full text-center py-12">
+                    <p class="text-gray-400 text-lg">没有找到匹配的文章</p>
+                    <p class="text-gray-500 text-sm mt-2">请尝试选择其他标签组合</p>
+                </div>
+            `;
+        }
+        
+        updateSelectedTagsInfo();
+    }
+    
+    // 切换标签选择状态
+    function toggleTag(tag) {
+        if (selectedTags.has(tag)) {
+            selectedTags.delete(tag);
+        } else {
+            selectedTags.add(tag);
+        }
+        
+        // 更新按钮状态
+        updateTagButtonStates();
+        // 过滤文章
+        filterArticles();
+    }
+    
+    // 更新标签按钮状态
+    function updateTagButtonStates() {
+        const tagButtons = document.querySelectorAll('.tag-filter');
+        const showAllButton = document.getElementById('show-all');
+        
+        tagButtons.forEach(button => {
+            const tag = button.dataset.tag;
+            if (selectedTags.has(tag)) {
+                button.classList.add('active', 'bg-blue-600');
+                button.classList.remove('bg-opacity-50');
+            } else {
+                button.classList.remove('active', 'bg-blue-600');
+                button.classList.add('bg-opacity-50');
+            }
+        });
+        
+        // 更新"显示全部"按钮状态
+        if (selectedTags.size === 0) {
+            showAllButton.classList.add('active');
+        } else {
+            showAllButton.classList.remove('active');
+        }
+    }
+    
+    // 清除所有选择
+    function clearAllFilters() {
+        selectedTags.clear();
+        updateTagButtonStates();
+        filterArticles();
+    }
+    
+    // 显示全部文章
+    function showAllArticles() {
+        selectedTags.clear();
+        updateTagButtonStates();
+        filterArticles();
+    }
+    
+    // 初始化事件监听器
+    document.addEventListener('DOMContentLoaded', function() {
+        // 标签按钮事件
+        const tagButtons = document.querySelectorAll('.tag-filter');
+        tagButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                toggleTag(this.dataset.tag);
+            });
+        });
+        
+        // 清除选择按钮事件
+        document.getElementById('clear-filters').addEventListener('click', clearAllFilters);
+        
+        // 显示全部按钮事件
+        document.getElementById('show-all').addEventListener('click', showAllArticles);
+        
+        // 初始化显示
+        updateSelectedTagsInfo();
+    });
+    
+    // 全局函数，保持向后兼容
+    window.toggleTag = toggleTag;
+    window.clearAllFilters = clearAllFilters;
+    window.showAllArticles = showAllArticles;
+</script>
+
+<style>
+    .tag-filter.active {
+        background-color: rgb(37 99 235) !important; /* bg-blue-600 */
+        background-opacity: 1 !important;
+    }
+    
+    #show-all.active {
+        background-color: rgb(22 163 74) !important; /* bg-green-600 */
+    }
+    
+    .blogCardBox {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .blogCardBox:hover {
+        transform: translateY(-2px);
+    }
+</style>
